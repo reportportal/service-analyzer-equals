@@ -53,7 +53,7 @@ type SearchConfig struct {
 func main() {
 
 	defCfg := conf.EmptyConfig()
-	defCfg.Consul.Address = "registry:8500"
+	defCfg.Consul.Address = "localhost:8500"
 	defCfg.Consul.Tags = []string{
 		"urlprefix-/analyzer opts strip=/analyzer",
 		"traefik.frontend.rule=PathPrefixStrip:/analyzer",
@@ -64,7 +64,7 @@ func main() {
 	cfg := struct {
 		*conf.RpConfig
 		*SearchConfig
-		ESHosts []string `env:"ES_HOSTS" envDefault:"http://localhost:9200"`
+		ESHosts []string `env:"ES_HOSTS" envDefault:"http://docker.for.mac.localhost:9200"`
 	}{
 		RpConfig:     defCfg,
 		SearchConfig: &SearchConfig{},
@@ -74,6 +74,7 @@ func main() {
 	if nil != err {
 		log.Fatalf("Cannot load configuration")
 	}
+	defCfg.Consul.Address = "docker.for.mac.localhost:8500"
 
 	cfg.AppName = "analyzer"
 	info := commons.GetBuildInfo()

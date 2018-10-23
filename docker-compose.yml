@@ -1,0 +1,12 @@
+version: '3'
+services:
+  analyzer-tiger:
+    image: analyzer-tiger
+    build:
+      context: .
+      dockerfile: DockerfileDev
+    volumes:
+    - ./:/go/src/git.epam.com/epmc-tst/service-analyzer-tiger/
+    restart: on-failure
+    ports:
+    - 8080:8080

@@ -1,26 +1,19 @@
-FROM golang:1.10
+FROM golang:1.11.1-alpine
+WORKDIR /go/src/git.epam.com/epmc-tst/service-analyzer-tiger
 
-WORKDIR /go/src/github.com/reportportal/service-analyzer/
-ARG version
+RUN apk add --update --no-cache \
+      build-base git curl \
+      ca-certificates \
+      tzdata
 
-## Copy makefile and glide before to be able to cache vendor
-COPY Makefile ./
-RUN make get-build-deps
+#RUN curl https://glide.sh/get | sh && \
+RUN go get -v github.com/oxequa/realize github.com/alecthomas/gometalinter && \
+    gometalinter --install && \
+    curl -o /usr/local/bin/swagger -L https://github.com/go-swagger/go-swagger/releases/download/0.16.0/swagger_linux_amd64 && \
+    chmod +x /usr/local/bin/swagger
 
-COPY glide.yaml ./
-COPY glide.lock ./
 
-RUN make vendor
+#COPY Makefile glide.lock glide.yaml ./
+#RUN glide install --strip-vendor
 
-ENV VERSION=$version
-
-RUN make get-build-deps
-COPY ./ ./
-RUN make build v=${VERSION}
-
-FROM alpine:latest
-ARG service
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-COPY --from=0 /go/src/github.com/reportportal/service-analyzer/bin/service-analyzer ./app
-CMD ["./app"]
+CMD ["realize", "start"]

@@ -55,7 +55,6 @@ type ESClient interface {
 
 	createIndexIfNotExists(indexName string) error
 	buildURL(pathElements ...string) string
-	sanitizeText(text string) string
 }
 
 // Response struct
@@ -174,7 +173,6 @@ func NewClient(hosts []string, searchCfg *SearchConfig) ESClient {
 	return &client{
 		hosts:     hosts,
 		searchCfg: searchCfg,
-		re:        regexp.MustCompile("\\d+"),
 		hc:        &http.Client{},
 	}
 }
@@ -190,7 +188,7 @@ func (rs *Response) String() string {
 //Healthy returns TRUE if cluster in operational state
 func (c *client) Healthy() bool {
 	var rs map[string]interface{}
-	err := c.sendOpRequest("GET", c.buildURL("_cluster/health"), &rs, nil)
+	err := c.sendOpRequest(http.MethodGet, c.buildURL("_cluster/health"), &rs, nil)
 	if nil != err {
 		return false
 	}
@@ -203,7 +201,7 @@ func (c *client) ListIndices() ([]Index, error) {
 
 	indices := []Index{}
 
-	err := c.sendOpRequest("GET", url, &indices)
+	err := c.sendOpRequest(http.MethodGet, url, &indices)
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +224,7 @@ func (c *client) CreateIndex(name string) (*Response, error) {
 						"type": "keyword",
 					},
 					"message": map[string]interface{}{
-						"type":  "string",
-						"index": "not_analyzed",
+						"type": "keyword",
 					},
 					"log_level": map[string]interface{}{
 						"type": "integer",
@@ -306,8 +303,6 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 
 				bodies = append(bodies, op)
 
-				message := c.sanitizeText(l.Message)
-
 				body := map[string]interface{}{
 					"launch_name":      lc.LaunchName,
 					"test_item":        ti.TestItemID,
@@ -315,7 +310,7 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 					"is_auto_analyzed": ti.IsAutoAnalyzed,
 					"issue_type":       ti.IssueType,
 					"log_level":        l.LogLevel,
-					"message":          message,
+					"message":          l.Message,
 				}
 
 				bodies = append(bodies, body)
@@ -343,9 +338,8 @@ func (c *client) AnalyzeLogs(launches []Launch) ([]AnalysisResult, error) {
 			issueTypes := make(map[string]*score)
 
 			for _, l := range ti.Logs {
-				message := c.sanitizeText(l.Message)
 
-				query := c.buildQuery(lc.LaunchName, ti.UniqueID, message)
+				query := c.buildQuery(lc.LaunchName, ti.UniqueID, l.Message)
 
 				rs := &SearchResult{}
 				err := c.sendOpRequest(http.MethodGet, url, rs, query)
@@ -390,10 +384,6 @@ func (c *client) createIndexIfNotExists(indexName string) error {
 		_, err = c.CreateIndex(indexName)
 	}
 	return errors.Wrap(err, "Cannot create ES index")
-}
-
-func (c *client) sanitizeText(text string) string {
-	return c.re.ReplaceAllString(text, "")
 }
 
 func (c *client) buildURL(pathElements ...string) string {
