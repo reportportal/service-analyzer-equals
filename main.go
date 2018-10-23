@@ -45,12 +45,9 @@ func init() {
 
 //SearchConfig specified details of queries to elastic search
 type SearchConfig struct {
-	BoostLaunch    float64 `env:"ES_BOOST_LAUNCH" envDefault:"2.0"`
-	BoostUniqueID  float64 `env:"ES_BOOST_UNIQUE_ID" envDefault:"2.0"`
-	BoostAA        float64 `env:"ES_BOOST_AA" envDefault:"2.0"`
-	MinDocFreq     float64 `env:"ES_MIN_DOC_FREQ" envDefault:"7"`
-	MinTermFreq    float64 `env:"ES_MIN_TERM_FREQ" envDefault:"1"`
-	MinShouldMatch string  `env:"ES_MIN_SHOULD_MATCH" envDefault:"80%"`
+	BoostLaunch   float64 `env:"ES_BOOST_LAUNCH" envDefault:"2.0"`
+	BoostUniqueID float64 `env:"ES_BOOST_UNIQUE_ID" envDefault:"2.0"`
+	BoostAA       float64 `env:"ES_BOOST_AA" envDefault:"2.0"`
 }
 
 func main() {
@@ -67,7 +64,7 @@ func main() {
 	cfg := struct {
 		*conf.RpConfig
 		*SearchConfig
-		ESHosts []string `env:"ES_HOSTS" envDefault:"http://elasticsearch:9200"`
+		ESHosts []string `env:"ES_HOSTS" envDefault:"http://localhost:9200"`
 	}{
 		RpConfig:     defCfg,
 		SearchConfig: &SearchConfig{},

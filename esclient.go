@@ -226,8 +226,8 @@ func (c *client) CreateIndex(name string) (*Response, error) {
 						"type": "keyword",
 					},
 					"message": map[string]interface{}{
-						"type":     "text",
-						"analyzer": "standard",
+						"type":  "string",
+						"index": "not_analyzed",
 					},
 					"log_level": map[string]interface{}{
 						"type": "integer",
@@ -422,12 +422,8 @@ func (c *client) buildQuery(launchName, uniqueID, logMessage string) interface{}
 						},
 					},
 					map[string]interface{}{
-						"more_like_this": map[string]interface{}{
-							"fields":               []string{"message"},
-							"like":                 logMessage,
-							"min_doc_freq":         c.searchCfg.MinDocFreq,
-							"min_term_freq":        c.searchCfg.MinTermFreq,
-							"minimum_should_match": c.searchCfg.MinShouldMatch,
+						"term": map[string]interface{}{
+							"message": logMessage,
 						},
 					},
 				},
