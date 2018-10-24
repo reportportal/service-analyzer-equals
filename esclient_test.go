@@ -1,3 +1,18 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package main
 
 import (
@@ -6,6 +21,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -468,7 +484,7 @@ func startServer(t *testing.T, expectedCalls []ServerCall, i *int) *httptest.Ser
 			defer r.Body.Close()
 			rq, err := ioutil.ReadAll(r.Body)
 			assert.NoError(t, err)
-			assert.Equal(t, expectedCall.rq, string(rq))
+			assert.Regexp(t, regexp.MustCompile(expectedCall.rq), string(rq))
 		}
 		w.WriteHeader(expectedCall.status)
 		if expectedCall.rs != "" {
