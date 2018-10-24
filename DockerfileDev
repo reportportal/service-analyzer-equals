@@ -1,5 +1,5 @@
 FROM golang:1.11.1-alpine
-WORKDIR /go/src/git.epam.com/epmc-tst/service-analyzer-tiger
+WORKDIR /go/src/github.com/reportportal/service-analyzer-equals
 
 RUN apk add --update --no-cache \
       build-base git curl \

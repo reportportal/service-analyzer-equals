@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: DockerfileDev
     volumes:
-    - ./:/go/src/git.epam.com/epmc-tst/service-analyzer-tiger/
+    - ./:/go/src/github.com/reportportal/service-analyzer-equals/
     restart: on-failure
     ports:
     - 8080:8080

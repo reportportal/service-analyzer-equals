@@ -159,7 +159,9 @@ func handleRequest(w http.ResponseWriter, rq *http.Request, handler requestHandl
 	if err != nil {
 		return server.ToStatusError(http.StatusInternalServerError, errors.WithStack(err))
 	}
-	server.WriteJSON(http.StatusOK, rs, w)
+	if err := server.WriteJSON(http.StatusOK, rs, w); nil != err {
+		return err
+	}
 
 	return nil
 }

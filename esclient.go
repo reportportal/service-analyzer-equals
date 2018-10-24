@@ -289,7 +289,10 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 	var bodies []interface{}
 
 	for _, lc := range launches {
-		c.createIndexIfNotExists(lc.Project)
+		err := c.createIndexIfNotExists(lc.Project)
+		if nil != err {
+			return nil, err
+		}
 		for _, ti := range lc.TestItems {
 			for _, l := range ti.Logs {
 
@@ -513,8 +516,8 @@ func (c *client) sendRequest(method, url string, bodies ...interface{}) ([]byte,
 			if err != nil {
 				return nil, err
 			}
-			buff.Write(rqBody)
-			buff.Write(nl)
+			_ := buff.Write(rqBody)
+			_ := buff.Write(nl)
 		}
 		rdr = buff
 	}
