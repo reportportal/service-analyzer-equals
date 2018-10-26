@@ -4,7 +4,7 @@ node {
 
     load "$JENKINS_HOME/jobvars.env"
 
-    dir('src/github.com/reportportal/service-analyzer') {
+    dir('src/github.com/reportportal/service-analyzer-equals') {
 
         stage('Checkout') {
             checkout scm
@@ -16,11 +16,11 @@ node {
             withEnv(["IMAGE_POSTFIX=-dev", "BUILD_NUMBER=${env.BUILD_NUMBER}"]) {
                 docker.withServer("$DOCKER_HOST") {
                     stage('Build Docker Image') {
-                        sh 'make build-image-dev v=`cat VERSION`-$BUILD_NUMBER'
+                        sh 'make build-image v=`cat VERSION`-$BUILD_NUMBER'
                     }
 
                     stage('Deploy container') {
-                        sh "docker-compose -p reportportal -f $COMPOSE_FILE up -d --force-recreate analyzer"
+                        sh "docker-compose -p reportportal -f $COMPOSE_FILE up -d --force-recreate analyzer-equals"
                     }
                 }
             }
