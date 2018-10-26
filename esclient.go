@@ -273,7 +273,7 @@ func (c *client) DeleteLogs(ci *CleanIndex) (*Response, error) {
 		bodies[i] = map[string]interface{}{
 			"delete": map[string]interface{}{
 				"_id":    id,
-				"_index": ci.Project,
+				"_index": getIndexName(ci.Project),
 				"_type":  indexType,
 			},
 		}
@@ -286,7 +286,7 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 	var bodies []interface{}
 
 	for _, lc := range launches {
-		err := c.createIndexIfNotExists(lc.Project)
+		err := c.createIndexIfNotExists(getIndexName(lc.Project))
 		if nil != err {
 			return nil, err
 		}
@@ -296,7 +296,7 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 				op := map[string]interface{}{
 					"index": map[string]interface{}{
 						"_id":    l.LogID,
-						"_index": lc.Project,
+						"_index": getIndexName(lc.Project),
 						"_type":  indexType,
 					},
 				}
@@ -332,7 +332,7 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 func (c *client) AnalyzeLogs(launches []Launch) ([]AnalysisResult, error) {
 	result := []AnalysisResult{}
 	for _, lc := range launches {
-		url := c.buildURL(lc.Project, "log", "_search")
+		url := c.buildURL(getIndexName(lc.Project), "log", "_search")
 
 		for _, ti := range lc.TestItems {
 			issueTypes := make(map[string]*score)
@@ -544,6 +544,10 @@ func (c *client) sendRequest(method, url string, bodies ...interface{}) ([]byte,
 	}
 
 	return rsBody, nil
+}
+
+func getIndexName(name string) string {
+	return "equalindex-" + name
 }
 
 func writeBody(buff io.Writer, body interface{}) error {
