@@ -4,7 +4,7 @@
     "items": [
         {
             "index": {
-                "_index": "idx2",
+                "_index": "equalindex-idx2",
                 "_type": "log",
                 "_id": "0001",
                 "_version": 1,

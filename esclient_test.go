@@ -270,7 +270,7 @@ func TestIndexLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "HEAD",
-					uri:    "/idx0",
+					uri:    "/equalindex-idx0",
 					status: http.StatusOK,
 				},
 			},
@@ -280,7 +280,7 @@ func TestIndexLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "HEAD",
-					uri:    "/idx1",
+					uri:    "/equalindex-idx1",
 					status: http.StatusOK,
 				},
 			},
@@ -290,12 +290,12 @@ func TestIndexLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "HEAD",
-					uri:    "/idx2",
+					uri:    "/equalindex-idx2",
 					status: http.StatusNotFound,
 				},
 				{
 					method: "PUT",
-					uri:    "/idx2",
+					uri:    "/equalindex-idx2",
 					rs:     getFixture(IndexCreatedRs),
 					status: http.StatusOK,
 				},
@@ -346,14 +346,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
@@ -365,14 +365,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(OneHitSearchRs),
 					status: http.StatusOK,
@@ -385,14 +385,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(OneHitSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(TwoHitsSearchRs),
 					status: http.StatusOK,
@@ -405,14 +405,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(TwoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(ThreeHitsSearchRs),
 					status: http.StatusOK,
@@ -425,14 +425,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/idx2/log/_search",
+					uri:    "/equalindex-idx2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(ThreeHitsSearchRs),
 					status: http.StatusOK,
