@@ -46,7 +46,7 @@ build: checkstyle test
 
 # Builds the container
 build-image:
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux docker build -t "$(IMAGE_NAME)" --build-arg version=${v} -f Dockerfile .
+	docker build -t "$(IMAGE_NAME)" --build-arg version=${v} -f Dockerfile .
 
 
 # Builds the container and pushes to private registry
