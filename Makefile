@@ -42,7 +42,7 @@ fmt:
 
 # Builds server
 build: checkstyle test
-	CGO_ENABLED=0 GOOS=linux $(GO) build ${BUILD_INFO_LDFLAGS} -o ${BINARY_DIR}/service-analyzer ./
+	CGO_ENABLED=0 GOOS=linux $(GO) build ${BUILD_INFO_LDFLAGS} -o ${BINARY_DIR}/service-analyzer-equals ./
 
 # Builds the container
 build-image:
@@ -65,8 +65,8 @@ build-release: vendor get-build-deps checkstyle test
 	# make sure latest version is bumped to file
 	releaser bump --version ${v}
 
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux $(GO) build ${BUILD_INFO_LDFLAGS} -o ${RELEASE_DIR}/service-analyzer_linux_amd64 ./
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows $(GO) build ${BUILD_INFO_LDFLAGS} -o ${RELEASE_DIR}/service-analyzer_win_amd64.exe ./
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux $(GO) build ${BUILD_INFO_LDFLAGS} -o ${RELEASE_DIR}/service-analyzer-equals_linux_amd64 ./
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows $(GO) build ${BUILD_INFO_LDFLAGS} -o ${RELEASE_DIR}/service-analyzer-equals_win_amd64.exe ./
 
 release: build-release
 	releaser release --bintray.token ${BINTRAY_TOKEN}
