@@ -26,5 +26,5 @@ FROM alpine:latest
 ARG service
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
-COPY --from=0 /go/src/git.epam.com/reportportal/service-analyzer-tiger/bin/service-analyzer ./app
+COPY --from=0 /go/src/git.epam.com/reportportal/service-analyzer-equals/bin/service-analyzer ./app
 CMD ["./app"]
