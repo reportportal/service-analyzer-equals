@@ -1,4 +1,4 @@
-package: github.com/reportportal/service-analyzer
+package: github.com/reportportal/service-analyzer-equals
 import:
 - package: gopkg.in/reportportal/commons-go.v1
   version: ^1.0.0
