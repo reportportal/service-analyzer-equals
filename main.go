@@ -53,7 +53,7 @@ func main() {
 		"traefik.frontend.rule=PathPrefixStrip:/analyzer-equals",
 		"analyzer=EQUALS",
 		"analyzer_index=true",
-		"analyzer_priority=10",
+		"analyzer_priority=1",
 	}
 	cfg := struct {
 		*conf.RpConfig
