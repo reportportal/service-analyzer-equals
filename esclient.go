@@ -476,7 +476,7 @@ func calculateScores(rs *SearchResult, k int, scores map[string]*score) {
 		for _, h := range hits {
 			typeScore, ok := scores[h.Source.IssueType]
 			currScore := h.Score / totalScore
-			log.Debugf("Found hit with score '%d' and avg score '%d'", h.Score, currScore)
+			log.Debugf("Found hit with score '%f' and avg score '%f'", h.Score, currScore)
 			if ok {
 				typeScore.score += currScore
 			} else {
