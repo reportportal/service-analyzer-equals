@@ -260,7 +260,7 @@ func (c *client) IndexExists(name string) (bool, error) {
 }
 
 func (c *client) DeleteIndex(name string) (*Response, error) {
-	url := c.buildURL(name)
+	url := c.buildURL(getIndexName(name))
 	rs := &Response{}
 	return rs, c.sendOpRequest(http.MethodDelete, url, rs)
 }
