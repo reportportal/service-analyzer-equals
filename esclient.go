@@ -476,6 +476,7 @@ func calculateScores(rs *SearchResult, k int, scores map[string]*score) {
 		for _, h := range hits {
 			typeScore, ok := scores[h.Source.IssueType]
 			currScore := h.Score / totalScore
+			log.Debugf("Found hit with score '%d' and avg score '%d'", h.Score, currScore)
 			if ok {
 				typeScore.score += currScore
 			} else {
@@ -484,7 +485,10 @@ func calculateScores(rs *SearchResult, k int, scores map[string]*score) {
 				scores[h.Source.IssueType] = &score{currScore, h}
 			}
 		}
+	} else {
+		log.Debug("No hits found")
 	}
+
 }
 
 func (c *client) sendOpRequest(method, url string, response interface{}, bodies ...interface{}) error {
