@@ -224,7 +224,7 @@ func TestDeleteIndex(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "DELETE",
-					uri:    "/idx0",
+					uri:    "/equalindex-idx0",
 					rs:     getFixture(IndexDeletedRs),
 					status: http.StatusOK,
 				},
@@ -236,7 +236,7 @@ func TestDeleteIndex(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "DELETE",
-					uri:    "/idx1",
+					uri:    "/equalindex-idx1",
 					rs:     getFixture(IndexNotFoundRs),
 					status: http.StatusNotFound,
 				},
