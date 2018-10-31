@@ -88,9 +88,10 @@ type BulkResponse struct {
 
 // Launch struct
 type Launch struct {
-	LaunchID   string `json:"launchId,required" validate:"required"`
-	Project    string `json:"project,required" validate:"required"`
-	LaunchName string `json:"launchName,omitempty"`
+	LaunchID   string       `json:"launchId,required" validate:"required"`
+	Project    string       `json:"project,required" validate:"required"`
+	LaunchName string       `json:"launchName,omitempty"`
+	Conf       AnalyzerConf `json:"analyzerConfig"`
 	TestItems  []struct {
 		TestItemID        string `json:"testItemId,required" validate:"required"`
 		UniqueID          string `json:"uniqueId,required" validate:"required"`
@@ -103,6 +104,17 @@ type Launch struct {
 			Message  string `json:"message,required" validate:"required"`
 		} `json:"logs,omitempty"`
 	} `json:"testItems,omitempty"`
+}
+
+// AnalyzerConf struct
+type AnalyzerConf struct {
+	MinDocFreq      float64    `json:"minDocFreq,omitempty"`
+	MintTermFreq    float64    `json:"minTermFreq,omitempty"`
+	MinShouldMatch  int        `json:"minShouldMatch,omitempty"`
+	LogLines        int        `json:"numberOfLogLines,omitempty"`
+	AAEnabled       bool       `json:"isAutoAnalyzerEnabled"`
+	Mode            SearchMode `json:"analyzer_mode"`
+	IndexingRunning bool       `json:"indexing_running"`
 }
 
 // Index struct
@@ -338,8 +350,9 @@ func (c *client) AnalyzeLogs(launches []Launch) ([]AnalysisResult, error) {
 			issueTypes := make(map[string]*score)
 
 			for _, l := range ti.Logs {
+				message := firstLines(l.Message, lc.Conf.LogLines)
 
-				query := c.buildQuery(lc.LaunchName, ti.UniqueID, l.Message)
+				query := c.buildQuery(lc, ti.UniqueID, message)
 
 				rs := &SearchResult{}
 				err := c.sendOpRequest(http.MethodGet, url, rs, query)
@@ -390,57 +403,60 @@ func (c *client) buildURL(pathElements ...string) string {
 	return c.hosts[0] + "/" + strings.Join(pathElements, "/")
 }
 
-func (c *client) buildQuery(launchName, uniqueID, logMessage string) interface{} {
-	return map[string]interface{}{
-		"size": 10,
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must_not": map[string]interface{}{
-					"wildcard": map[string]interface{}{
-						"issue_type": "TI*",
+func (c *client) buildQuery(launch Launch, uniqueID, logMessage string) interface{} {
+	q := EsQueryRQ{
+		Size: 10,
+		Query: &EsQuery{
+			Bool: &BoolCondition{
+				MustNot: &Condition{
+					Wildcard: map[string]interface{}{"issue_type": "TI*"},
+				},
+				Must: []Condition{
+					{
+						Range: map[string]interface{}{"log_level": map[string]interface{}{"gte": ErrorLoggingLevel}},
+					},
+					{
+						Exists: &ExistsCondition{
+							Field: "issue_type",
+						},
+					},
+					{
+						Term: map[string]TermCondition{"message": {Value: logMessage}},
 					},
 				},
-				"must": []interface{}{
-					map[string]interface{}{
-						"term": map[string]interface{}{
-							"log_level": ErrorLoggingLevel,
-						},
+				Should: []Condition{
+					{
+						Term: map[string]TermCondition{"unique_id": {uniqueID, NewBoost(math.Abs(c.searchCfg.BoostUniqueID))}},
 					},
-					map[string]interface{}{
-						"exists": map[string]interface{}{
-							"field": "issue_type",
-						},
+					{
+						Term: map[string]TermCondition{"is_auto_analyzed": {strconv.FormatBool(c.searchCfg.BoostAA < 0), NewBoost(math.Abs(c.searchCfg.BoostAA))}},
 					},
-					map[string]interface{}{
-						"term": map[string]interface{}{
-							"message": logMessage,
-						},
-					},
-				},
-				"should": []map[string]interface{}{
-					{"term": map[string]interface{}{
-						"launch_name": map[string]interface{}{
-							"value": launchName,
-							"boost": math.Abs(c.searchCfg.BoostLaunch),
-						},
-					}},
-					{"term": map[string]interface{}{
-						"unique_id": map[string]interface{}{
-							"value": uniqueID,
-							"boost": math.Abs(c.searchCfg.BoostUniqueID),
-						},
-					}},
-					{"term": map[string]interface{}{
-						"is_auto_analyzed": map[string]interface{}{
-							"value": strconv.FormatBool(c.searchCfg.BoostAA < 0),
-							"boost": math.Abs(c.searchCfg.BoostAA),
-						},
-					}},
 				},
 			},
-		},
+		}}
+	switch launch.Conf.Mode {
+	case SearchModeAll, SearchModeNotFound:
+		q.Query.Bool.Should = append(q.Query.Bool.Should, Condition{
+			Term: map[string]TermCondition{"launch_name": {launch.LaunchName, NewBoost(math.Abs(c.searchCfg.BoostLaunch))}},
+		})
+	case SearchModeLaunchName:
+		q.Query.Bool.Must = append(q.Query.Bool.Must, Condition{
+			Term: map[string]TermCondition{"launch_name": {Value: launch.LaunchName}},
+		})
+	case SearchModeCurrentLaunch:
+		q.Query.Bool.Must = append(q.Query.Bool.Must, Condition{
+			Term: map[string]TermCondition{"launch_id": {Value: launch.LaunchID}},
+		})
 	}
+
+	return q
 }
+
+//map[string]interface{}{
+//"term": map[string]interface{}{
+//"message": logMessage,
+//},
+//},
 
 //score represents total score for defect type
 //mrHit is hit with highest score found (most relevant hit)
@@ -566,4 +582,29 @@ func writeBody(buff io.Writer, body interface{}) error {
 		log.Error(err)
 	}
 	return nil
+}
+
+// findNth searches for the nth occurrence of string
+func findNth(str, f string, n int) int {
+	i := 0
+	for m := 1; m <= n; m++ {
+		x := strings.Index(str[i:], f)
+		if x < 0 {
+			return x
+		}
+		if m == n {
+			return x + i
+		}
+		i += x + len(f)
+	}
+	return -1
+}
+
+// findNth searches for the nth occurrence of string
+func firstLines(str string, n int) string {
+	sep := findNth(str, "\n", n)
+	if sep > 0 {
+		return str[0:sep]
+	}
+	return str
 }
