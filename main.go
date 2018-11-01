@@ -32,6 +32,8 @@ func init() {
 	// Log as JSON instead of the default ASCII formatter.
 	log.SetFormatter(&logrus.TextFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
+		FullTimestamp:   true,
+		ForceColors:     true,
 	})
 
 	// Output to stdout instead of the default stderr

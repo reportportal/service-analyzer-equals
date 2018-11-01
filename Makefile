@@ -16,7 +16,7 @@ REPO_NAME=reportportal/service-analyzer-equals
 BUILD_INFO_LDFLAGS=-ldflags "-extldflags '"-static"' -X ${PACKAGE_COMMONS}/commons.repo=${REPO_NAME} -X ${PACKAGE_COMMONS}/commons.branch=${COMMIT_HASH} -X ${PACKAGE_COMMONS}/commons.buildDate=${BUILD_DATE} -X ${PACKAGE_COMMONS}/commons.version=${v}"
 IMAGE_NAME=reportportal/service-analyzer-equals$(IMAGE_POSTFIX)
 
-.PHONY: vendor test build
+.PHONY: vendor test build build-image
 
 help:
 	@echo "build      - go build"

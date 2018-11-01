@@ -294,10 +294,12 @@ func (c *client) DeleteLogs(ci *CleanIndex) (*Response, error) {
 }
 
 func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
-
+	log.Debugf("Indexing logs for [%d] launches", len(launches))
 	var bodies []interface{}
 
 	for _, lc := range launches {
+		log.Debugf("Indexing logs for launch [%s]", lc.LaunchID)
+
 		err := c.createIndexIfNotExists(getIndexName(lc.Project))
 		if nil != err {
 			return nil, err
