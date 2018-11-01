@@ -556,7 +556,7 @@ func (c *client) sendRequest(method, url string, bodies ...interface{}) ([]byte,
 		return nil, errors.Wrap(err, "Cannot read ES response")
 	}
 
-	log.Debugf("ES responded with %d status code", rs.StatusCode)
+	log.Debugf("ES responded with [%d] status code: %s", rs.StatusCode, string(rsBody))
 	if rs.StatusCode > http.StatusCreated && rs.StatusCode < http.StatusNotFound {
 		body := string(rsBody)
 		log.Errorf("ES communication error. Status code %d, Body %s", rs.StatusCode, body)
@@ -575,6 +575,7 @@ func writeBody(buff io.Writer, body interface{}) error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("Sending RQ to ES: %s", string(rqBody))
 	if _, err = buff.Write(rqBody); nil != err {
 		log.Error(err)
 	}
