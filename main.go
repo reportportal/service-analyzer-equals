@@ -15,27 +15,29 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/reportportal/commons-go.v1/commons"
 	"gopkg.in/reportportal/commons-go.v1/conf"
 	"gopkg.in/reportportal/commons-go.v1/server"
 )
 
+var log = logrus.New()
+
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
-	log.SetFormatter(&log.TextFormatter{
+	log.SetFormatter(&logrus.TextFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
 	})
 
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(logrus.DebugLevel)
 
 }
 
