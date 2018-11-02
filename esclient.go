@@ -316,8 +316,8 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 				}
 
 				bodies = append(bodies, op)
-
 				body := map[string]interface{}{
+					"launch_id":        lc.LaunchID,
 					"launch_name":      lc.LaunchName,
 					"test_item":        ti.TestItemID,
 					"unique_id":        ti.UniqueID,
