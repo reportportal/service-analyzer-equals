@@ -5,10 +5,10 @@ LABEL version={{.version}}
 
 ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/{{.version}}
 
-ADD ${APP_DOWNLOAD_URL}/service-analyzer_linux_amd64 /service-analyzer
+ADD ${APP_DOWNLOAD_URL}/service-analyzer-equals_linux_amd64 /service-analyzer-equals
 
-RUN chmod +x /service-analyzer
+RUN chmod +x /service-analyzer-equals
 
 
 EXPOSE 8080
-ENTRYPOINT ["/service-analyzer"]
+ENTRYPOINT ["/service-analyzer-equals"]
