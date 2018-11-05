@@ -7,7 +7,7 @@ The following should be added to the docker-compose descriptor
 
 ```yml
   analyzer-equals:
-    image: reportportal/service-analyzer-equals-dev
+    image: reportportal/service-analyzer-equals:4.0.1
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/analyzer-equals strip=/analyzer-equals analyzer=equals analyzer_priority=1 analyzer_index=true
