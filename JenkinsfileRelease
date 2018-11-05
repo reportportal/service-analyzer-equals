@@ -4,7 +4,7 @@ node {
 
        load "$JENKINS_HOME/jobvars.env"
 
-    dir('src/github.com/reportportal/service-analyzer') {
+    dir('src/github.com/reportportal/service-analyzer-equals') {
 
         stage('Checkout'){
                 checkout scm
@@ -17,7 +17,7 @@ node {
                         env.PATH="${GOPATH}/bin:$PATH"
                         sh 'go version'
                         sh 'make release v=${RELEASE_VERSION}'
-                        sh 'file release/service-analyzer_linux_amd64'
+                        sh 'file release/service-analyzer-equals_linux_amd64'
 
                 }
 

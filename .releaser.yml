@@ -2,6 +2,6 @@ bintray:
   user: avarabyeu
   org: epam
   repo: reportportal
-  pack: service-analyzer
+  pack: service-analyzer-equals
 artifactsFolder: release
 replace: DockerfileTmpl=Dockerfile
