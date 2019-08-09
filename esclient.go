@@ -1,16 +1,17 @@
-/*Copyright 2018 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/*
+* Copyright 2019 EPAM Systems
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
  */
 package main
 
@@ -42,7 +43,7 @@ type ESClient interface {
 	ListIndices() ([]Index, error)
 	CreateIndex(name string) (*Response, error)
 	IndexExists(name string) (bool, error)
-	DeleteIndex(name string) (*Response, error)
+	DeleteIndex(name int64) (*Response, error)
 
 	IndexLogs(launches []Launch) (*BulkResponse, error)
 	DeleteLogs(ci *CleanIndex) (*Response, error)
@@ -88,18 +89,18 @@ type BulkResponse struct {
 
 // Launch struct
 type Launch struct {
-	LaunchID   string       `json:"launchId,required" validate:"required"`
-	Project    string       `json:"project,required" validate:"required"`
+	LaunchID   int64        `json:"launchId,required" validate:"required"`
+	Project    int64        `json:"project,required" validate:"required"`
 	LaunchName string       `json:"launchName,omitempty"`
 	Conf       AnalyzerConf `json:"analyzerConfig"`
 	TestItems  []struct {
-		TestItemID        string `json:"testItemId,required" validate:"required"`
+		TestItemID        int64  `json:"testItemId,required" validate:"required"`
 		UniqueID          string `json:"uniqueId,required" validate:"required"`
 		IsAutoAnalyzed    bool   `json:"isAutoAnalyzed,required" validate:"required"`
 		IssueType         string `json:"issueType,omitempty"`
 		OriginalIssueType string `json:"originalIssueType,omitempty"`
 		Logs              []struct {
-			LogID    string `json:"log_id,required" validate:"required"`
+			LogID    int64  `json:"logId,required" validate:"required"`
 			LogLevel int    `json:"logLevel,omitempty"`
 			Message  string `json:"message,required" validate:"required"`
 		} `json:"logs,omitempty"`
@@ -113,8 +114,8 @@ type AnalyzerConf struct {
 	MinShouldMatch  int        `json:"minShouldMatch,omitempty"`
 	LogLines        int        `json:"numberOfLogLines,omitempty"`
 	AAEnabled       bool       `json:"isAutoAnalyzerEnabled"`
-	Mode            SearchMode `json:"analyzer_mode"`
-	IndexingRunning bool       `json:"indexing_running"`
+	Mode            SearchMode `json:"analyzerMode"`
+	IndexingRunning bool       `json:"indexingRunning"`
 }
 
 // Index struct
@@ -149,7 +150,7 @@ type Hit struct {
 	ID     string  `json:"_id,omitempty"`
 	Score  float64 `json:"_score,omitempty"`
 	Source struct {
-		TestItem   string `json:"test_item,omitempty"`
+		TestItem   int64  `json:"test_item,omitempty"`
 		IssueType  string `json:"issue_type,omitempty"`
 		Message    string `json:"message,omitempty"`
 		LogLevel   int    `json:"log_level,omitempty"`
@@ -159,15 +160,15 @@ type Hit struct {
 
 //AnalysisResult represents result of analyzes which is basically array of found matches (predicted issue type and ID of most relevant Test Item)
 type AnalysisResult struct {
-	TestItem     string `json:"test_item,omitempty"`
-	IssueType    string `json:"issue_type,omitempty"`
-	RelevantItem string `json:"relevant_item,omitempty"`
+	TestItem     int64  `json:"testItem,omitempty"`
+	IssueType    string `json:"issueType,omitempty"`
+	RelevantItem int64  `json:"relevantItem,omitempty"`
 }
 
 //CleanIndex is a request to clean index
 type CleanIndex struct {
-	IDs     []string `json:"ids,omitempty"`
-	Project string   `json:"project,required" validate:"required"`
+	IDs     []int64 `json:"ids,omitempty"`
+	Project int64   `json:"project,required" validate:"required"`
 }
 
 type client struct {
@@ -219,6 +220,8 @@ func (c *client) ListIndices() ([]Index, error) {
 }
 
 func (c *client) CreateIndex(name string) (*Response, error) {
+	log.Debugf("Creating index %s", name)
+
 	body := map[string]interface{}{
 		"settings": map[string]interface{}{
 			"number_of_shards": 1,
@@ -260,6 +263,8 @@ func (c *client) CreateIndex(name string) (*Response, error) {
 }
 
 func (c *client) IndexExists(name string) (bool, error) {
+	log.Debugf("Checking index %s", name)
+
 	url := c.buildURL(name)
 
 	httpClient := &http.Client{}
@@ -271,14 +276,18 @@ func (c *client) IndexExists(name string) (bool, error) {
 	return rs.StatusCode == http.StatusOK, nil
 }
 
-func (c *client) DeleteIndex(name string) (*Response, error) {
-	url := c.buildURL(getIndexName(name))
+func (c *client) DeleteIndex(name int64) (*Response, error) {
+	var indexName = getIndexName(name)
+	log.Debugf("Deleting index %s", indexName)
+	url := c.buildURL(indexName)
 	rs := &Response{}
 	return rs, c.sendOpRequest(http.MethodDelete, url, rs)
 }
 
 func (c *client) DeleteLogs(ci *CleanIndex) (*Response, error) {
+	log.Debugf("Deleting logs %v", ci.IDs)
 	url := c.buildURL("_bulk")
+	url = url + "?refresh"
 	rs := &Response{}
 	bodies := make([]interface{}, len(ci.IDs))
 	for i, id := range ci.IDs {
@@ -298,7 +307,7 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 	var bodies []interface{}
 
 	for _, lc := range launches {
-		log.Debugf("Indexing logs for launch [%s]", lc.LaunchID)
+		log.Debugf("Indexing logs for launch [%d]", lc.LaunchID)
 
 		err := c.createIndexIfNotExists(getIndexName(lc.Project))
 		if nil != err {
@@ -338,12 +347,14 @@ func (c *client) IndexLogs(launches []Launch) (*BulkResponse, error) {
 		return rs, nil
 	}
 
-	url := c.buildURL("_bulk")
+	url := c.buildURL("_bulk?refresh")
 
 	return rs, c.sendOpRequest(http.MethodPut, url, rs, bodies...)
 }
 
 func (c *client) AnalyzeLogs(launches []Launch) ([]AnalysisResult, error) {
+	log.Debugf("Starting analysis for %d launches", len(launches))
+
 	result := []AnalysisResult{}
 	for _, lc := range launches {
 		url := c.buildURL(getIndexName(lc.Project), "log", "_search")
@@ -386,6 +397,7 @@ func (c *client) AnalyzeLogs(launches []Launch) ([]AnalysisResult, error) {
 
 		}
 	}
+	log.Debugf("Analysis has found %d matches", len(result))
 
 	return result, nil
 }
@@ -568,8 +580,8 @@ func (c *client) sendRequest(method, url string, bodies ...interface{}) ([]byte,
 	return rsBody, nil
 }
 
-func getIndexName(name string) string {
-	return "equalindex-" + name
+func getIndexName(name int64) string {
+	return "equalindex-" + strconv.FormatInt(name, 10)
 }
 
 func writeBody(buff io.Writer, body interface{}) error {

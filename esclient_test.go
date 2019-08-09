@@ -1,23 +1,24 @@
 /*
- * Copyright 2018 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+* Copyright 2019 EPAM Systems
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
  */
 package main
 
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/reportportal/commons-go.v5/conf"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -25,7 +26,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/reportportal/commons-go.v1/server"
+	"gopkg.in/reportportal/commons-go.v5/server"
 )
 
 const (
@@ -217,31 +218,31 @@ func TestIndexExists(t *testing.T) {
 func TestDeleteIndex(t *testing.T) {
 	tests := []struct {
 		calls          []ServerCall
-		index          string
+		index          int64
 		expectedStatus int
 	}{
 		{
 			calls: []ServerCall{
 				{
 					method: "DELETE",
-					uri:    "/equalindex-idx0",
+					uri:    "/equalindex-1",
 					rs:     getFixture(IndexDeletedRs),
 					status: http.StatusOK,
 				},
 			},
-			index:          "idx0",
+			index:          1,
 			expectedStatus: 0,
 		},
 		{
 			calls: []ServerCall{
 				{
 					method: "DELETE",
-					uri:    "/equalindex-idx1",
+					uri:    "/equalindex-2",
 					rs:     getFixture(IndexNotFoundRs),
 					status: http.StatusNotFound,
 				},
 			},
-			index:          "idx1",
+			index:          2,
 			expectedStatus: http.StatusNotFound,
 		},
 	}
@@ -270,7 +271,7 @@ func TestIndexLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "HEAD",
-					uri:    "/equalindex-idx0",
+					uri:    "/equalindex-0",
 					status: http.StatusOK,
 				},
 			},
@@ -280,7 +281,7 @@ func TestIndexLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "HEAD",
-					uri:    "/equalindex-idx1",
+					uri:    "/equalindex-1",
 					status: http.StatusOK,
 				},
 			},
@@ -290,18 +291,18 @@ func TestIndexLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "HEAD",
-					uri:    "/equalindex-idx2",
+					uri:    "/equalindex-2",
 					status: http.StatusNotFound,
 				},
 				{
 					method: "PUT",
-					uri:    "/equalindex-idx2",
+					uri:    "/equalindex-2",
 					rs:     getFixture(IndexCreatedRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "PUT",
-					uri:    "/_bulk",
+					uri:    "/_bulk?refresh",
 					rq:     getFixture(IndexLogsRq),
 					rs:     getFixture(IndexLogsRs),
 					status: http.StatusOK,
@@ -346,14 +347,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
@@ -365,14 +366,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(OneHitSearchRs),
 					status: http.StatusOK,
@@ -385,14 +386,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(OneHitSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(TwoHitsSearchRs),
 					status: http.StatusOK,
@@ -405,14 +406,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(TwoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(ThreeHitsSearchRs),
 					status: http.StatusOK,
@@ -425,14 +426,14 @@ func TestAnalyzeLogs(t *testing.T) {
 			calls: []ServerCall{
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(NoHitsSearchRs),
 					status: http.StatusOK,
 				},
 				{
 					method: "GET",
-					uri:    "/equalindex-idx2/log/_search",
+					uri:    "/equalindex-2/log/_search",
 					rq:     getFixture(SearchRq),
 					rs:     getFixture(ThreeHitsSearchRs),
 					status: http.StatusOK,
@@ -465,7 +466,7 @@ func TestAnalyzeLogs(t *testing.T) {
 func TestClearIndex(t *testing.T) {
 	assert.Error(t, server.Validate(&CleanIndex{}), "Incorrect struct validation")
 	assert.NoError(t, server.Validate(&CleanIndex{
-		Project: "project",
+		Project: 1,
 	}), "Incorrect struct validation")
 
 }
@@ -568,4 +569,10 @@ hello`, n: 2},
 			}
 		})
 	}
+}
+
+func defaultSearchConfig() *SearchConfig {
+	sc := &SearchConfig{}
+	conf.LoadConfig(sc)
+	return sc
 }
